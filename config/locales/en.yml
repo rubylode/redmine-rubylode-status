@@ -1,0 +1,41 @@
+en:
+  rubylode_status:
+    settings:
+      menu_label:
+        label: Menu label
+        hint: The name of the top menu link and the heading of the Status page.
+      timeout_seconds:
+        label: Timeout seconds
+        hint: A block that takes longer than this many seconds to answer shows as unknown.
+      token_environment_variable:
+        label: Token variable
+        hint: "The name of the environment variable that holds the read-only token for /status.json. The token is never saved here. Set it before Redmine starts. The name must start with STATUS_."
+        set: The variable is set.
+        not_set: "The variable is not set, so /status.json takes only a Redmine login or API key."
+        not_allowed: "This name does not start with STATUS_, so no token is read."
+      layout:
+        heading: Blocks on the Status page
+        hint: "Blocks with an order come first, lowest first. The rest follow in the order their plugins loaded. The page has two columns when there are blocks on both sides, one otherwise."
+        block: Block
+        position: Order
+        shown: Show
+        column: Column
+        left: Left
+        right: Right
+        administrators_only: administrators only
+    page:
+      empty: No status blocks are registered yet.
+      empty_plugins: "Each of these plugins adds one when it is installed:"
+      age: "Each block shows what its plugin last fetched. How old that can be is in each plugin's settings."
+    widget:
+      failed: This block could not be loaded. The error is in the Redmine log.
+      timed_out: "This block did not answer within %{seconds} seconds."
+      no_data: This block returned nothing to show.
+      drawing_failed: This block could not be drawn. The error is in the Redmine log.
+    states:
+      ok: OK
+      warning: Warning
+      down: Down
+      unknown: Unknown
+    api:
+      unauthorized: Sign in, or send a Redmine API key or the status token.
