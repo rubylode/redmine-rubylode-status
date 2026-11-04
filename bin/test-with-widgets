@@ -7,11 +7,13 @@
 #   bin/test-with-widgets with-status           Status plus the four widget plugins
 #   bin/test-with-widgets without-status        only the four widget plugins
 #   bin/test-with-widgets with-status test/cross_plugin/menu_test.rb      one test file
+#   bin/test-with-widgets nine-plugins          boots the nine 2.0.0 plugins the theme demo mounts (no Status) in production mode
 #   bin/test-with-widgets preview               start the five plugins with stub services on http://localhost:3099 until Ctrl-C
 require "fileutils"
 
 STATUS_CHECKOUT = File.expand_path("..", __dir__)
-PARENT_DIRECTORY = File.dirname(STATUS_CHECKOUT)
+# RUBYLODE_CHECKOUTS points at another folder holding copies of the widget checkouts, to try a deliberate break without touching them.
+PARENT_DIRECTORY = ENV.fetch("RUBYLODE_CHECKOUTS", File.dirname(STATUS_CHECKOUT))
 IMAGE = "rubylode-cross-plugin-test".freeze
 PLUGIN_DIRECTORIES = {
   "beszel" => "redmine-rubylode-beszel",
@@ -23,7 +25,7 @@ STATUS_TOKEN_FOR_TESTS = "cross-plugin-test-token-7d41".freeze
 PREVIEW_PORT = 3099
 
 mode = ARGV.shift || "all"
-unless %w[all with-status without-status preview].include?(mode)
+unless %w[all with-status without-status preview nine-plugins].include?(mode)
   abort "Unknown mode #{mode.inspect}. Use all, with-status, without-status or preview."
 end
 single_file = ARGV.shift
@@ -75,8 +77,25 @@ def run_preview
        "--env", "STATUS_TOKEN=#{STATUS_TOKEN_FOR_TESTS}", *widget_mounts, *status_mount(true), IMAGE, "sh", "-c", script)
 end
 
+NINE_PLUGINS = %w[projects home todo uptime-kuma glitchtip windmill beszel stats new-issue-button].freeze
+
+# Boots the same set of plugins the Moonstone theme demo mounts, in production mode like that demo, and prints the log if it fails.
+def run_nine_plugins
+  mounts = NINE_PLUGINS.flat_map do |directory|
+    ["--volume", "#{File.join(PARENT_DIRECTORY, "redmine-rubylode-#{directory}")}:/usr/src/redmine/plugins/redmine_rubylode_#{directory.tr('-', '_')}:ro"]
+  end
+  script = <<~SH
+    cd /usr/src/redmine &&
+    printf 'production:\n  adapter: sqlite3\n  database: /tmp/redmine_production.sqlite3\n' > config/database.yml &&
+    bundle exec rake generate_secret_token db:migrate redmine:plugins:migrate >/tmp/migrate.log 2>&1 || { tail -40 /tmp/migrate.log; exit 1; }
+    ruby /status_repository/test/cross_plugin/support/production_boot_check.rb
+  SH
+  system("docker", "run", "--rm", "--env", "RAILS_ENV=production", *mounts, *status_mount(false), IMAGE, "sh", "-c", script)
+end
+
 case mode
 when "preview" then run_preview
+when "nine-plugins" then exit(run_nine_plugins ? 0 : 1)
 when "with-status" then exit(run_tests("Status and the four widget plugins", true, single_file) ? 0 : 1)
 when "without-status" then exit(run_tests("The four widget plugins without Status", false, single_file) ? 0 : 1)
 else
