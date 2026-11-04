@@ -76,6 +76,8 @@ module CrossPluginStubs
     def base_url = @server.base_url
     def stop = @server.stop
 
+    def requests = @server.requests
+
     def system(name, status: "up", cpu: 10, memory: 30, disk: 40)
       { "name" => name, "status" => status, "updated" => Time.now.utc.iso8601,
         "info" => { "cpu" => cpu, "mp" => memory, "dp" => disk } }
@@ -93,15 +95,18 @@ module CrossPluginStubs
   end
 
   class Glitchtip
-    attr_accessor :issues
+    attr_accessor :issues, :response_status
 
     def initialize
       @issues = []
-      @server = Server.new { |_method, _path, _query, _headers| [200, "application/json", JSON.generate(@issues)] }
+      @response_status = 200
+      @server = Server.new { |_method, _path, _query, _headers| [@response_status, "application/json", JSON.generate(@issues)] }
     end
 
     def base_url = @server.base_url
     def stop = @server.stop
+
+    def requests = @server.requests
 
     def issue(id, title, level: "error", count: 5, project: "web")
       now = Time.now.utc.iso8601
@@ -134,9 +139,10 @@ module CrossPluginStubs
   end
 
   class Windmill
-    attr_accessor :failed_jobs, :schedules, :latest_runs
+    attr_accessor :failed_jobs, :schedules, :latest_runs, :response_status
 
     def initialize
+      @response_status = 200
       @failed_jobs = []
       @schedules = {}
       @latest_runs = {}
@@ -145,6 +151,7 @@ module CrossPluginStubs
 
     def base_url = @server.base_url
     def stop = @server.stop
+    def requests = @server.requests
 
     def failed_job(id, script_path, error: "Boom")
       now = Time.now.utc.iso8601(3)
@@ -156,6 +163,8 @@ module CrossPluginStubs
 
     def respond(path, query)
       json = "application/json"
+      return [@response_status, json, "{}"] unless @response_status == 200
+
       case path
       when %r{/jobs/completed/list\z}
         if query["schedule_path"]
