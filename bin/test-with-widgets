@@ -1,0 +1,86 @@
+#!/usr/bin/env ruby
+# Runs the cross-plugin integration tests in test/cross_plugin/ against the real code of all five Rubylode status plugins,
+# in one Redmine 7.0.2 (the same image as bin/test). The checkouts of Beszel, GlitchTip, Uptime Kuma and Windmill must sit
+# next to this one; they are mounted read-only and never changed.
+#
+#   bin/test-with-widgets                       both runs below
+#   bin/test-with-widgets with-status           Status plus the four widget plugins
+#   bin/test-with-widgets without-status        only the four widget plugins
+#   bin/test-with-widgets with-status test/cross_plugin/menu_test.rb      one test file
+#   bin/test-with-widgets preview               start the five plugins with stub services on http://localhost:3099 until Ctrl-C
+require "fileutils"
+
+STATUS_CHECKOUT = File.expand_path("..", __dir__)
+PARENT_DIRECTORY = File.dirname(STATUS_CHECKOUT)
+IMAGE = "rubylode-cross-plugin-test".freeze
+PLUGIN_DIRECTORIES = {
+  "beszel" => "redmine-rubylode-beszel",
+  "glitchtip" => "redmine-rubylode-glitchtip",
+  "uptime_kuma" => "redmine-rubylode-uptime-kuma",
+  "windmill" => "redmine-rubylode-windmill"
+}.freeze
+STATUS_TOKEN_FOR_TESTS = "cross-plugin-test-token-7d41".freeze
+PREVIEW_PORT = 3099
+
+mode = ARGV.shift || "all"
+unless %w[all with-status without-status preview].include?(mode)
+  abort "Unknown mode #{mode.inspect}. Use all, with-status, without-status or preview."
+end
+single_file = ARGV.shift
+
+PLUGIN_DIRECTORIES.each_value do |directory|
+  abort "Missing checkout #{File.join(PARENT_DIRECTORY, directory)}" unless File.directory?(File.join(PARENT_DIRECTORY, directory))
+end
+
+# Same Dockerfile as bin/test, built under a name of its own so this script does not depend on a compose project name.
+system("docker", "build", "--quiet", "--tag", IMAGE, "--file", File.join(STATUS_CHECKOUT, "docker", "test.Dockerfile"),
+       File.join(STATUS_CHECKOUT, "docker"), out: File::NULL) || abort("docker build failed")
+
+def widget_mounts
+  PLUGIN_DIRECTORIES.flat_map do |short_name, directory|
+    ["--volume", "#{File.join(PARENT_DIRECTORY, directory)}:/usr/src/redmine/plugins/redmine_rubylode_#{short_name}:ro"]
+  end
+end
+
+def status_mount(with_status)
+  target = with_status ? "/usr/src/redmine/plugins/redmine_rubylode_status" : "/status_repository"
+  ["--volume", "#{STATUS_CHECKOUT}:#{target}:ro"]
+end
+
+def prepare_database
+  <<~SH
+    cd /usr/src/redmine &&
+    printf 'test:\\n  adapter: sqlite3\\n  database: /tmp/redmine_test.sqlite3\\n' > config/database.yml &&
+    bundle exec rake generate_secret_token db:migrate redmine:plugins:migrate >/dev/null
+  SH
+    .strip
+end
+
+def run_tests(label, with_status, single_file)
+  root = with_status ? "/usr/src/redmine/plugins/redmine_rubylode_status" : "/status_repository"
+  pattern = with_status ? "test/cross_plugin/*_test.rb" : "test/cross_plugin/without_status/*_test.rb"
+  pattern = single_file if single_file
+  runner = "bundle exec ruby -Itest -I#{root}/test/cross_plugin -e 'Dir.glob(ARGV).sort.each { |file| require file }' '#{root}/#{pattern}'"
+  # The files for the run without the Status plugin sit in a folder of their own, so the first run never loads them.
+  command = ["docker", "run", "--rm", "--env", "RAILS_ENV=test", "--env", "CROSS_PLUGIN_WITH_STATUS=#{with_status ? '1' : '0'}",
+             "--env", "STATUS_TOKEN=#{STATUS_TOKEN_FOR_TESTS}",
+             *widget_mounts, *status_mount(with_status), IMAGE, "sh", "-c", "#{prepare_database} && #{runner}"]
+  puts "== #{label}"
+  system(*command)
+end
+
+def run_preview
+  script = "#{prepare_database} && bundle exec ruby plugins/redmine_rubylode_status/test/cross_plugin/support/preview_server.rb"
+  exec("docker", "run", "--rm", "--publish", "127.0.0.1:#{PREVIEW_PORT}:3000", "--env", "RAILS_ENV=test",
+       "--env", "STATUS_TOKEN=#{STATUS_TOKEN_FOR_TESTS}", *widget_mounts, *status_mount(true), IMAGE, "sh", "-c", script)
+end
+
+case mode
+when "preview" then run_preview
+when "with-status" then exit(run_tests("Status and the four widget plugins", true, single_file) ? 0 : 1)
+when "without-status" then exit(run_tests("The four widget plugins without Status", false, single_file) ? 0 : 1)
+else
+  results = [run_tests("Status and the four widget plugins", true, nil),
+             run_tests("The four widget plugins without Status", false, nil)]
+  exit(results.all? ? 0 : 1)
+end
