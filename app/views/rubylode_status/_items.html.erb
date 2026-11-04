@@ -1,0 +1,13 @@
+<% if status.items.any? %>
+  <ul class="rubylode-status-items">
+    <% status.items.each do |item| %>
+      <li class="rubylode-status-state-<%= item[:state] %>">
+        <span class="rubylode-status-item-name"><%= item[:name] %></span>
+        <span class="rubylode-status-state-label"><%= rubylode_status_state_label(item[:state]) %></span>
+        <% if item[:detail].present? %>
+          <span class="rubylode-status-item-detail"><%= item[:detail] %></span>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>

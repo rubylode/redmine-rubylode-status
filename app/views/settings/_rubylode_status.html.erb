@@ -1,0 +1,73 @@
+<%# The plugin's settings. Redmine wraps this in the plugin's settings form. %>
+<%
+  status_settings = RubylodeStatus::Settings.new(settings)
+  layout_page = RubylodeStatus::Page.new(viewer: RubylodeStatus::Viewer.for_user(User.current), settings: status_settings)
+  column_choices = RubylodeStatus::Settings::COLUMNS.map { |column| [l("rubylode_status.settings.layout.#{column}"), column] }
+  token_state =
+    if status_settings.token_environment_variable.nil?
+      "not_allowed"
+    elsif status_settings.token_variable_set?
+      "set"
+    else
+      "not_set"
+    end
+%>
+<div class="tabular settings">
+  <p>
+    <label for="settings_menu_label"><%= l("rubylode_status.settings.menu_label.label") %></label>
+    <%= text_field_tag "settings[menu_label]", status_settings.menu_label, id: "settings_menu_label", size: 30 %>
+    <em class="info"><%= l("rubylode_status.settings.menu_label.hint") %></em>
+  </p>
+  <p>
+    <label for="settings_timeout_seconds"><%= l("rubylode_status.settings.timeout_seconds.label") %></label>
+    <%= number_field_tag "settings[timeout_seconds]", status_settings.timeout_seconds, id: "settings_timeout_seconds",
+                         min: RubylodeStatus::Settings::MINIMUM_TIMEOUT_SECONDS, max: RubylodeStatus::Settings::MAXIMUM_TIMEOUT_SECONDS %>
+    <em class="info"><%= l("rubylode_status.settings.timeout_seconds.hint") %></em>
+  </p>
+  <p>
+    <label for="settings_token_environment_variable"><%= l("rubylode_status.settings.token_environment_variable.label") %></label>
+    <%= text_field_tag "settings[token_environment_variable]", settings["token_environment_variable"],
+                       id: "settings_token_environment_variable", size: 30 %>
+    <em class="info"><%= l("rubylode_status.settings.token_environment_variable.hint") %></em>
+    <em class="info rubylode-status-token-state"><%= l("rubylode_status.settings.token_environment_variable.#{token_state}") %></em>
+  </p>
+</div>
+
+<fieldset class="box">
+  <legend><%= l("rubylode_status.settings.layout.heading") %></legend>
+  <% if layout_page.registered? %>
+    <p><em class="info"><%= l("rubylode_status.settings.layout.hint") %></em></p>
+    <table class="list">
+      <thead>
+        <tr>
+          <th><%= l("rubylode_status.settings.layout.block") %></th>
+          <th><%= l("rubylode_status.settings.layout.position") %></th>
+          <th><%= l("rubylode_status.settings.layout.shown") %></th>
+          <th><%= l("rubylode_status.settings.layout.column") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% layout_page.ordered_widgets.each do |widget| %>
+          <% layout = status_settings.layout_for(widget.key) %>
+          <% field = "settings[widgets][#{widget.key}]" %>
+          <tr id="rubylode-status-layout-<%= widget.key %>">
+            <td class="name"><%= widget.title %><% if widget.visibility == "admins" %> <em>(<%= l("rubylode_status.settings.layout.administrators_only") %>)</em><% end %></td>
+            <td><%= number_field_tag "#{field}[position]", layout.position, min: 1, size: 3,
+                                     id: "settings_widgets_#{widget.key}_position",
+                                     "aria-label": "#{l("rubylode_status.settings.layout.position")}: #{widget.title}" %></td>
+            <td>
+              <%= hidden_field_tag "#{field}[shown]", "0", id: nil %>
+              <%= check_box_tag "#{field}[shown]", "1", layout.shown?, id: "settings_widgets_#{widget.key}_shown",
+                                "aria-label": "#{l("rubylode_status.settings.layout.shown")}: #{widget.title}" %>
+            </td>
+            <td><%= select_tag "#{field}[column]", options_for_select(column_choices, layout.column),
+                               id: "settings_widgets_#{widget.key}_column",
+                               "aria-label": "#{l("rubylode_status.settings.layout.column")}: #{widget.title}" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <%= render partial: "rubylode_status/empty" %>
+  <% end %>
+</fieldset>

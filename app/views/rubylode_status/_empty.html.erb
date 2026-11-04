@@ -1,0 +1,8 @@
+<div class="rubylode-status-empty">
+  <p><%= l("rubylode_status.page.empty") %> <%= l("rubylode_status.page.empty_plugins") %></p>
+  <ul>
+    <% RubylodeStatus::KnownPlugins::LIST.each do |plugin| %>
+      <li><%= link_to plugin.name, plugin.url %>: <%= plugin.shows %></li>
+    <% end %>
+  </ul>
+</div>

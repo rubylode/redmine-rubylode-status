@@ -1,0 +1,11 @@
+<% status = page.status_for(widget) %>
+<div class="box rubylode-status-widget rubylode-status-state-<%= status.state %>" id="rubylode-status-widget-<%= widget.key %>">
+  <h3>
+    <%= link_to widget.title, widget.path %>
+    <span class="rubylode-status-state-label"><%= rubylode_status_state_label(status.state) %></span>
+  </h3>
+  <% if status.summary.present? %>
+    <p class="rubylode-status-summary"><%= status.summary %></p>
+  <% end %>
+  <%= rubylode_status_widget_body(widget, status) %>
+</div>

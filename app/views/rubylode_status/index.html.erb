@@ -1,0 +1,26 @@
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag "rubylode_status", plugin: "redmine_rubylode_status" %>
+<% end %>
+<% html_title @page.settings.menu_label %>
+
+<h2><%= @page.settings.menu_label %></h2>
+
+<% if !@page.registered? %>
+  <%= render partial: "rubylode_status/empty" %>
+<% else %>
+  <p class="rubylode-status-age"><%= l("rubylode_status.page.age") %></p>
+  <% if @page.two_columns? %>
+    <div class="splitcontent">
+      <div class="splitcontentleft rubylode-status-column-left">
+        <%= render partial: "rubylode_status/widget", collection: @page.left_widgets, as: :widget, locals: { page: @page } %>
+      </div>
+      <div class="splitcontentright rubylode-status-column-right">
+        <%= render partial: "rubylode_status/widget", collection: @page.right_widgets, as: :widget, locals: { page: @page } %>
+      </div>
+    </div>
+  <% else %>
+    <div class="rubylode-status-column-<%= @page.right_widgets.any? ? "right" : "left" %>">
+      <%= render partial: "rubylode_status/widget", collection: @page.widgets, as: :widget, locals: { page: @page } %>
+    </div>
+  <% end %>
+<% end %>

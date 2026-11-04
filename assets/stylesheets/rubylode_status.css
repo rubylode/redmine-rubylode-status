@@ -1,0 +1,28 @@
+/* Rubylode Status: the Status page. Colors follow Redmine's own flash messages. */
+.rubylode-status-age { color: #777; }
+
+.rubylode-status-widget h3 { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5em; }
+
+.rubylode-status-state-label {
+  font-size: 0.85em;
+  font-weight: normal;
+  padding: 0 0.5em;
+  border-radius: 3px;
+  background: #eee;
+  color: #505050;
+}
+
+.rubylode-status-state-ok > h3 .rubylode-status-state-label,
+li.rubylode-status-state-ok .rubylode-status-state-label { background: #dfffdf; color: #005f00; }
+.rubylode-status-state-warning > h3 .rubylode-status-state-label,
+li.rubylode-status-state-warning .rubylode-status-state-label { background: #ffebc1; color: #a6750c; }
+.rubylode-status-state-down > h3 .rubylode-status-state-label,
+li.rubylode-status-state-down .rubylode-status-state-label { background: #ffe3e3; color: #880000; }
+
+.rubylode-status-widget.rubylode-status-state-warning { border-left: 4px solid #e4bb5f; }
+.rubylode-status-widget.rubylode-status-state-down { border-left: 4px solid #dd0000; }
+
+.rubylode-status-items { list-style: none; padding-left: 0; margin: 0; }
+.rubylode-status-items li { display: flex; flex-wrap: wrap; gap: 0.5em; align-items: baseline; padding: 2px 0; }
+.rubylode-status-item-name { font-weight: bold; }
+.rubylode-status-item-detail { color: #777; }
