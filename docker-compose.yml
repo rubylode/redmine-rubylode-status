@@ -1,0 +1,32 @@
+# A throwaway Redmine 7 to try the plugin in. Not the real tracker.
+# Start: docker compose up -d, then open http://localhost:3017 (admin / admin, change it on first login).
+# The repository is mounted as the plugin, so a code change shows after "docker compose restart redmine".
+# Wipe it: docker compose down -v
+# Tests: bin/test (runs the "test" service below)
+services:
+  redmine:
+    image: redmine:7.0.2
+    container_name: redmine-status-dev
+    ports:
+      - "127.0.0.1:3017:3000"
+    environment:
+      # The image ships without the development gems, so production is the mode it can boot in.
+      RAILS_ENV: production
+    volumes:
+      - .:/usr/src/redmine/plugins/redmine_rubylode_status
+      - redmine-status-files:/usr/src/redmine/files
+      - redmine-status-sqlite:/usr/src/redmine/sqlite
+
+  test:
+    build:
+      context: .
+      dockerfile: docker/test.Dockerfile
+    profiles: ["test"]
+    environment:
+      RAILS_ENV: test
+    volumes:
+      - .:/usr/src/redmine/plugins/redmine_rubylode_status
+
+volumes:
+  redmine-status-files:
+  redmine-status-sqlite:

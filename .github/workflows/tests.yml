@@ -1,0 +1,72 @@
+name: tests
+
+# Runs the plugin's tests inside a real Redmine, the same steps as bin/test:
+# Redmine's source, the plugin in plugins/redmine_rubylode_status, SQLite, then the plugin's unit and integration tests.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Redmine ${{ matrix.redmine }}, Ruby ${{ matrix.ruby }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        redmine: ["7.0.2", "7.0-stable"]
+        ruby: ["3.4", "4.0"]
+    env:
+      RAILS_ENV: test
+      BUNDLE_WITHOUT: development
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: redmine/redmine
+          ref: ${{ matrix.redmine }}
+          path: redmine
+
+      - uses: actions/checkout@v4
+        with:
+          path: redmine/plugins/redmine_rubylode_status
+
+      # Redmine's Gemfile picks the database gem from this file, so it has to exist before the gems are installed.
+      - name: Write the database settings
+        run: |
+          printf 'test:\n  adapter: sqlite3\n  database: db/test.sqlite3\n' > redmine/config/database.yml
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+          working-directory: redmine
+
+      - name: Create the database
+        working-directory: redmine
+        run: bundle exec rake generate_secret_token db:migrate redmine:plugins:migrate
+
+      - name: Run the plugin's tests
+        working-directory: redmine
+        run: bundle exec rake redmine:plugins:test NAME=redmine_rubylode_status
+
+  # A snapshot of what a release would contain, built from the commit that just passed on main.
+  package:
+    name: Build the plugin zip
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the zip
+        run: git archive --format=zip --prefix=redmine_rubylode_status/ -o redmine_rubylode_status-${{ github.sha }}.zip HEAD
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: redmine_rubylode_status-${{ github.sha }}
+          path: redmine_rubylode_status-${{ github.sha }}.zip
+          retention-days: 14
