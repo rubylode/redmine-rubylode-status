@@ -58,7 +58,7 @@ class RubylodeStatus::WidgetStatusTest < ActiveSupport::TestCase
   end
 
   test "a widget that raises shows as unknown with a short message, and the error goes to the log" do
-    widget = register_stub_widget("beszel") { raise "connection refused to https://user:secret@beszel.example.com" }
+    widget = register_stub_widget("beszel") { raise "connection refused to beszel.example.com" }
 
     status = nil
     log = captured_log { |logger| status = fetch(widget, logger: logger) }
