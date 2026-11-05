@@ -5,21 +5,31 @@ never reads another plugin's settings: whatever it needs, the plugin hands over 
 
 ## Register
 
-Put this at the end of the plugin's `init.rb`, after `Redmine::Plugin.register`. Beszel as the example:
+Put this at the end of the plugin's `init.rb`, after `Redmine::Plugin.register`. Every plugin does the same, with its own module name:
 
 ```ruby
 # Puts the block on the Status page when Rubylode Status is installed. See its docs/widget-contract.md.
 Rails.application.config.after_initialize do
-  if defined?(RubylodeStatus::Registry)
-    RubylodeStatus::Registry.register(
-      key: "beszel",
-      title: -> { RubylodeBeszel::Settings.current.block_title },
-      path: "/status/beszel",
-      data: -> { RubylodeBeszel::StatusWidget.data },
-      partial: "rubylode_beszel/status",
-      visibility: -> { RubylodeBeszel::Settings.current.visibility }
-    )
-  end
+  RubylodeBeszel::StatusWidget.register
+end
+```
+
+`StatusWidget.register` lives in the plugin (`app/models/rubylode_<short_name>/status_widget.rb`) and is named `register` in
+every plugin. It takes no argument, does nothing when the Status plugin is missing (`defined?(RubylodeStatus::Registry)` is
+false) and otherwise registers the widget. Beszel as the example:
+
+```ruby
+def register
+  return unless defined?(RubylodeStatus::Registry)
+
+  RubylodeStatus::Registry.register(
+    key: "beszel",
+    title: -> { RubylodeBeszel::Settings.current.block_title },
+    path: "/status/beszel",
+    data: -> { RubylodeBeszel::StatusWidget.data },
+    partial: "rubylode_beszel/status",
+    visibility: -> { RubylodeBeszel::Settings.current.visibility }
+  )
 end
 ```
 
