@@ -52,6 +52,10 @@ Administration, Plugins, Rubylode Status, Configure.
 
 Under the token variable the page says whether the variable is set, without showing its value.
 
+![The settings page: menu label, timeout, token variable and the layout of each block](docs/screenshots/status-settings.png)
+
+The settings page, with the layout of the four blocks and the token variable set.
+
 Blocks on the Status page lists every registered block, with three settings each:
 
 - Order: blocks with a number come first, lowest first. The rest follow in the order their plugins loaded, which is
@@ -105,6 +109,10 @@ Administration, Settings, API), or the status token ([Security](#security)).
   for each item. `detail` may be `null`. `path` is the block's own page.
 - Without a session, a valid API key or the token the answer is 401 with
   `{ "error": "Sign in, or send a Redmine API key or the status token." }`.
+
+![The /status.json answer for the four blocks](docs/screenshots/status-json.png)
+
+The answer for the four blocks of the preview, from stub services.
 
 ### Plugins that add a block
 
