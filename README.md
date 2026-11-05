@@ -13,6 +13,8 @@ added its own top menu link with its own wording. The menu got crowded. Now each
 Status page draws them all. This plugin draws only what is registered and never reads another plugin's settings. Installed
 alone, it shows an empty page that names the plugins that can fill it.
 
+![The Status page: servers, errors, services and Windmill runs, one menu link](docs/screenshots/status-page.png)
+
 - [Install](#install)
 - [Settings](#settings)
 - [Where it shows](#where-it-shows)
