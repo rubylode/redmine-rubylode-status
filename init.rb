@@ -23,7 +23,7 @@ Redmine::Plugin.register :redmine_rubylode_status do
   author_url "https://github.com/rubylode"
   url "https://github.com/rubylode/redmine-rubylode-status"
   description "One Status page and one top menu link for the status blocks of the other Rubylode plugins, plus /status.json"
-  version "2.0.0"
+  version "2.1.0"
   requires_redmine version_or_higher: "7.0.0"
 
   # Shown to the people who may see at least one registered block. The caption is the menu label setting.

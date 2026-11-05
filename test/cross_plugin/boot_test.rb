@@ -10,9 +10,9 @@ class CrossPluginBootTest < ActiveSupport::TestCase
     end
   end
 
-  test "every plugin reports version 2.0.0" do
+  test "every plugin reports a version" do
     %w[beszel glitchtip uptime_kuma windmill status].each do |short_name|
-      assert_equal "2.0.0", Redmine::Plugin.find(:"redmine_rubylode_#{short_name}").version, short_name
+      assert_match(/\A\d+\.\d+\.\d+\z/, Redmine::Plugin.find(:"redmine_rubylode_#{short_name}").version, short_name)
     end
   end
 

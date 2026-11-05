@@ -29,10 +29,10 @@ class CrossPluginWidgetsAloneTest < Redmine::IntegrationTest
     assert_not defined?(RubylodeStatus::Registry)
   end
 
-  test "all four widget plugins are installed at 2.0.0" do
+  test "all four widget plugins are installed" do
     WIDGET_KEYS.each do |key|
       assert Redmine::Plugin.installed?(:"redmine_rubylode_#{key}"), key
-      assert_equal "2.0.0", Redmine::Plugin.find(:"redmine_rubylode_#{key}").version, key
+      assert_match(/\A\d+\.\d+\.\d+\z/, Redmine::Plugin.find(:"redmine_rubylode_#{key}").version, key)
     end
   end
 

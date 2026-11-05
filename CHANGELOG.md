@@ -4,6 +4,16 @@ All notable changes to this plugin. The format follows [Keep a Changelog](https:
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-11-05
+
+No change to what the plugin does. This release carries the documentation and the build.
+
+### Changed
+
+- The screenshots in the README are retaken for 2.0.0: the new labels, the new page path and the Status notice.
+- The workflows use the current versions of the GitHub actions, and Dependabot sends one grouped update a month instead of one pull request per action.
+- The version number is no longer asserted exactly by the tests, so a release does not need a test edit.
+
 ## [2.0.0] - 2026-11-04
 
 First release. It starts at 2.0.0 with the rest of the Rubylode 2.0 plugins. Redmine 7.0 and newer.
