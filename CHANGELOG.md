@@ -4,6 +4,15 @@ All notable changes to this plugin. The format follows [Keep a Changelog](https:
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-11-19
+
+No change to what the plugin does. This release carries the documentation and the build.
+
+### Changed
+
+- The widget contract shows the one `register` call every plugin uses.
+- The repository publishes main and the release tags to GitHub from Gitea, and checks every published path for private files.
+
 ## [2.1.0] - 2026-11-05
 
 No change to what the plugin does. This release carries the documentation and the build.
