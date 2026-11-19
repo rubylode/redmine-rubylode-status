@@ -3,3 +3,4 @@
 .gitattributes export-ignore
 docker export-ignore
 docker-compose.yml export-ignore
+docs/thumbnail.png export-ignore

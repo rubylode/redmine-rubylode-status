@@ -1,5 +1,7 @@
 # Rubylode Status for Redmine
 
+<p><img src="docs/thumbnail.png" alt="Rubylode Status plugin" width="160"></p>
+
 [![tests](https://img.shields.io/github/actions/workflow/status/rubylode/redmine-rubylode-status/tests.yml?branch=main&label=tests)](https://github.com/rubylode/redmine-rubylode-status/actions/workflows/tests.yml)
 [![security](https://img.shields.io/github/actions/workflow/status/rubylode/redmine-rubylode-status/security.yml?branch=main&label=security)](https://github.com/rubylode/redmine-rubylode-status/actions/workflows/security.yml)
 [![license](https://img.shields.io/github/license/rubylode/redmine-rubylode-status)](https://github.com/rubylode/redmine-rubylode-status/blob/main/LICENSE)
