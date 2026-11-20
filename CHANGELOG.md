@@ -11,6 +11,7 @@ No change to what the plugin does. This release carries the documentation and th
 ### Changed
 
 - The widget contract shows the one `register` call every plugin uses.
+- The release zip holds only what Redmine needs: the tests, the docs and the development scripts are left out.
 - The repository publishes main and the release tags to GitHub from Gitea, and checks every published path for private files.
 
 ## [2.1.0] - 2026-11-05
